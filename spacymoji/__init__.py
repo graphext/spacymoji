@@ -1,11 +1,14 @@
 # coding: utf8
 from __future__ import unicode_literals
+import logging
 
 from spacy.tokens import Doc, Span, Token
 from spacy.matcher import PhraseMatcher
 from emoji import UNICODE_EMOJI
 
 from .about import __version__
+
+logger = logging.getLogger(__name__)
 
 # make sure multi-character emoji don't contain whitespace
 EMOJI = {e.replace(' ', ''): t for e, t in UNICODE_EMOJI.items()}
@@ -82,7 +85,11 @@ class Emoji(object):
             spans.append(span)
         if self.merge_spans:
             for span in spans:
-                span.merge()
+                try:
+                    span.merge()
+                except Exception as exc:
+                    logger.warning(f"Couldn't merge span {list(span)} ({start}, {end}) in doc {list(doc)}.")
+                    logger.exception(exc)
         return doc
 
     def has_emoji(self, tokens):
